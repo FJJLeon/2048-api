@@ -235,7 +235,7 @@ if __name__ == "__main__":
         game=tmpGame,
         maxPower=16, 
         modelLevel=[256, 512, 900],
-        firstTime=True)
+        firstTime=False)
 
     myAgent.train(
         expertAgent,

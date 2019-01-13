@@ -18,7 +18,13 @@ note: the models should be in the path of ```/2048-api/model```
     from game import Game
 ```
 note: if there exists models in the path ```/2048-api/model```, set **firstTime** to **False** in instantiation myOwnAgent in the last part of **myAgent2.py**, or set to **True**
-
+```
+    myAgent = myOwnAgent(
+        game=tmpGame,
+        maxPower=16, 
+        modelLevel=[256, 512, 900],
+        firstTime=False)
+```
 2. then run blow command in the path of ```/2048-api```
 ```
     python game2048/myAgent2.py
