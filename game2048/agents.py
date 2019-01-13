@@ -40,7 +40,7 @@ class ExpectiMaxAgent(Agent):
             raise ValueError(
                 "`%s` can only work with game of `size` 4." % self.__class__.__name__)
         super().__init__(game, display)
-        from .expectimax import board_to_move
+        from expectimax import board_to_move
         self.search_func = board_to_move
 
     def step(self):

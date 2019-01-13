@@ -36,6 +36,27 @@ class myOwnAgent(Agent):
         if __name__ == "__main__":
             self.save_model(self.path)
 
+    def play(self, max_iter=np.inf, verbose=False):
+        n_iter = 0
+        nowTime = lambda:int(round(time.time()*1000))
+        sumTime = []
+        while (n_iter < max_iter) and (not self.game.end):
+            start_time = nowTime()
+            direction = self.step()
+            end_time = nowTime()
+            sumTime.append(end_time - start_time)
+
+            self.game.move(direction)
+            n_iter += 1
+            if verbose:
+                print("Iter: {}".format(n_iter))
+                print("======Direction: {}======".format(
+                    ["left", "down", "right", "up"][direction]))
+                if self.display is not None:
+                    self.display.display(self.game)
+        return sumTime
+        
+        
     def step(self):
         # 0: left, 1: down, 2: right, 3: up
         # convert current board to format board
@@ -55,8 +76,6 @@ class myOwnAgent(Agent):
     def build_model(self, maxPower):
         # x = Input((4,4,16))
         boardinputs = Input(shape=(self.game.size, self.game.size, maxPower)) 
-        # Conv Blocks
-        #y = self.add_blocks(boardinputs, 128)
         FILTERS = 128
         # conv layer (4*1,1*4,2*2,3*3,4*4)
         conv41 = Conv2D(filters=FILTERS,kernel_size=(4, 1),padding='same',kernel_initializer='he_uniform')(boardinputs)
@@ -83,7 +102,7 @@ class myOwnAgent(Agent):
         return model
 
 
-    def train(self, expert, train_batch_size=32, batches_round=1000, epoch_each_train=10, max_suffer=30):
+    def train(self, expert, train_batch_size=32, batches_round=1000, epoch_per_train=10, max_loop=30):
         for i, max_score in enumerate(self.modelTarget):
             # find the model target score interval
             if i == 0:
@@ -97,8 +116,8 @@ class myOwnAgent(Agent):
             # the weak_agent should be last one or self
             data_generator = data_gene_func(self, min_score, max_score, train_batch_size)
             # train epoch max 30, or fail          
-            for out_loop in range(max_suffer):
-                print('---== Network %d Epoch %d in %d ==---' % (i, out_loop, max_suffer))
+            for out_loop in range(max_loop):
+                print('---== Network %d Epoch %d in %d ==---' % (i, out_loop, max_loop))
                 start_time = time.time()
 
                 if (out_loop % 3 == 1):
@@ -128,7 +147,7 @@ class myOwnAgent(Agent):
                     train_x,
                     train_y,
                     batch_size=train_batch_size,
-                    epochs=epoch_each_train,
+                    epochs=epoch_per_train,
                     verbose=1,
                     validation_split=0.1)
 
@@ -172,7 +191,6 @@ class myOwnAgent(Agent):
         return modelList
 
     def save_model(self, path=['level1.h5','level2.h5','level3.h5','level4.h5']):
-        assert(len(path) == len(self.modelList))
         for i in range(len(self.modelList)):
             keras.models.save_model(self.modelList[i], 'model/'+path[i])
 
@@ -198,7 +216,7 @@ def data_gene_func(weak_agent, board_min=2, board_max=np.inf, batch_size=32):
         # reset weak agent game
         weak_agent.game.reset()
         # record board between min and max score
-        # maybe cannot gennerate min score, lower
+        # maybe cannot gennerate min score, lower it by mul 0.6
         while (not weak_agent.game.end) and (weak_agent.game.score <= board_max):
             if weak_agent.game.score > board_min*0.6:
                 buffer.append(weak_agent.game.board)
@@ -210,11 +228,11 @@ def data_gene_func(weak_agent, board_min=2, board_max=np.inf, batch_size=32):
             buffer = buffer[batch_size:]
 
 if __name__ == "__main__":
-    new_game = Game(size=4, enable_rewrite_board=True)
-    expertAgent = ExpectiMaxAgent(new_game)
+    tmpGame = Game(size=4, enable_rewrite_board=True)
+    expertAgent = ExpectiMaxAgent(tmpGame)
 
     myAgent = myOwnAgent(
-        game=new_game,
+        game=tmpGame,
         maxPower=16, 
         modelLevel=[256, 512, 900],
         firstTime=True)
@@ -223,7 +241,7 @@ if __name__ == "__main__":
         expertAgent,
         train_batch_size=32,
         batches_round=1000,
-        epoch_each_train=10,
-        max_suffer=30)
+        epoch_per_train=10,
+        max_loop=30)
 
     myAgent.save_model()

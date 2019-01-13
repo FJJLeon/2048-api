@@ -46,9 +46,10 @@ if __name__ == "__main__":
         print("WARNING: You are now using a RandomAgent.")
         agent = RandomAgent(game=game)
 
+    from game2048.myAgent2 import myOwnAgent
     print("Run the webapp at http://<any address for your local host>:%s/" % APP_PORT)    
     
-    app = get_flask_app(game, agent)
+    app = get_flask_app(game, myOwnAgent)
     app.run(port=APP_PORT, threaded=False, host=APP_HOST)  # IMPORTANT: `threaded=False` to ensure correct behavior
     
     

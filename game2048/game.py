@@ -18,6 +18,7 @@ class Game:
             score_to_win = np.inf
         self.score_to_win = score_to_win
         self.__rate_2 = rate_2
+        self.random = random
         if random:
             self.__board = \
                 2 ** np.random.randint(1, 10, size=(self.size, self.size))
@@ -29,6 +30,18 @@ class Game:
             self._maybe_new_entry()
         self.enable_rewrite_board = enable_rewrite_board
         assert not self.end
+
+    def reset(self):
+        if self.random:
+            self.__board = \
+                2 ** np.random.randint(1, 10, size=(self.size, self.size))
+            self.__end = False
+        else:
+            self.__board = np.zeros((self.size, self.size))
+            # initilize the board (with 2 entries)
+            self._maybe_new_entry()
+            self._maybe_new_entry()
+        return self.__board
 
     def move(self, direction):
         '''
